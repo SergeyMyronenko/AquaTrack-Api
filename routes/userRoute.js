@@ -8,7 +8,7 @@ import {
   LogOut,
   refreshToken,
 } from "../controllers/userController.js";
-// import { refreshAuth } from "../middlewares/refreshAuth.js";
+import { refreshAuth } from "../middlewares/refreshAuth.js";
 import { auth } from "../middlewares/authenticate.js";
 
 const userRouter = express.Router();
@@ -17,7 +17,7 @@ userRouter.post("/register", validateBody(createUserSchema), SignUp);
 
 userRouter.post("/login", validateBody(loginUserSchema), SignIn);
 
-// userRouter.get("/refresh", refreshAuth, refreshToken);
+userRouter.get("/refresh", refreshAuth, refreshToken);
 
 userRouter.post("/logout", auth, LogOut);
 
