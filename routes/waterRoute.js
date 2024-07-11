@@ -14,7 +14,7 @@ import {
   updateWater,
   getDayWater,
   getMonthWater,
-  summaryTodayWater,
+  // summaryTodayWater,
 } from "../controllers/waterService.js";
 
 import { auth } from "../middlewares/authenticate.js";
