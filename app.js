@@ -10,8 +10,8 @@ export const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/users/", userRouter);
-app.use("/api-water/", waterRouter);
+app.use("/api/users/", userRouter);
+app.use("/api/water/", waterRouter);
 // app.use("/water/");
 
 app.use((_, res) => {
