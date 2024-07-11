@@ -8,29 +8,28 @@ import {
 } from "../services/userServices.js";
 
 export const SignUp = async (req, res, next) => {
-  const { name, email, password } = req.body;
+  const { email, password } = req.body;
+
   try {
     const isUser = await findUserByEmail(email);
     if (isUser) {
       throw HttpError(409, "User already exist");
     }
 
-    const avatarURL = null;
+    // const avatarURL = null;
 
-    await createUser({ name, email, password, avatarURL });
+    await createUser({ email, password });
 
     const user = await findUserByEmail(email);
 
-    const newUser = await updateUserWithToken(user.id);
+    const newUser = await updateUserWithToken(user._id);
 
     res.status(201).json({
       user: {
-        name,
         email,
       },
       token: newUser.accessToken,
       refreshToken: newUser.refreshToken,
-      message: "User created",
     });
   } catch (error) {
     next(error);
