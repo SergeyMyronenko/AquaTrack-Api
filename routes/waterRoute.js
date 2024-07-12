@@ -14,6 +14,7 @@ import {
   updateWater,
   getDayWater,
   getMonthWater,
+  getSumaryAmount,
 } from "../controllers/waterService.js";
 
 import { auth } from "../middlewares/authenticate.js";
@@ -35,6 +36,7 @@ waterRouter.put(
   auth,
   updateWater
 );
+waterRouter.get("/", auth, getSumaryAmount);
 waterRouter.get("/day/:date", WaterDate, auth, getDayWater);
 waterRouter.get("/month/:date", WaterDate, auth, getMonthWater);
 
