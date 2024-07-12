@@ -5,7 +5,6 @@ const userSchema = new Schema(
   {
     name: {
       type: String,
-      required: [true, "Name is required"],
       default: null,
     },
     email: {
@@ -17,10 +16,24 @@ const userSchema = new Schema(
       type: String,
       required: [true, "Password is required"],
     },
-    avatarURL: String,
-    theme: {
+    avatarURL: {
+      type: String,
+    },
+    gender: {
       type: String,
       default: null,
+    },
+    weight: {
+      type: Number,
+      default: 0,
+    },
+    activeTime: {
+      type: Number,
+      default: 0,
+    },
+    liters: {
+      type: Number,
+      default: 0,
     },
     accessToken: {
       type: String,
@@ -31,7 +44,7 @@ const userSchema = new Schema(
       default: null,
     },
   },
-  { versionKey: false }
+  { timestamps: true, versionKey: false }
 );
 
 userSchema.methods.hashPasswords = async function () {
