@@ -19,6 +19,22 @@ const userSchema = new Schema(
     avatarURL: {
       type: String,
     },
+    gender: {
+      type: String,
+      default: null,
+    },
+    weight: {
+      type: Number,
+      default: 0,
+    },
+    activeTime: {
+      type: Number,
+      default: 0,
+    },
+    liters: {
+      type: Number,
+      default: 0,
+    },
     accessToken: {
       type: String,
       default: null,
