@@ -1,0 +1,354 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "version": "1.0.0",
+      "title": "User and Water API",
+      "description": "API для управления пользователями и водным потреблением"
+    },
+    "servers": [
+      {
+        "url": "https://aquatrack-api-crcb.onrender.com",
+        "description": "Main server"
+      }
+    ],
+    "paths": {
+      "/register": {
+        "post": {
+          "summary": "Register a new user",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateUser"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "User registered successfully"
+            },
+            "400": {
+              "description": "Bad Request",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Bad Request",
+                    "message": "Invalid input"
+                  }
+                }
+              }
+            },
+            "409": {
+              "description": "Conflict",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Conflict",
+                    "message": "User already exists"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/login": {
+        "post": {
+          "summary": "Login a user",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginUser"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "User logged in successfully"
+            },
+            "400": {
+              "description": "Bad Request",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Bad Request",
+                    "message": "Invalid input"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Unauthorized",
+                    "message": "Email or password is incorrect"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/refresh": {
+        "get": {
+          "summary": "Refresh authentication token",
+          "responses": {
+            "200": {
+              "description": "Token refreshed successfully"
+            },
+            "401": {
+              "description": "Unauthorized",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Unauthorized",
+                    "message": "Invalid or expired refresh token"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/logout": {
+        "post": {
+          "summary": "Logout a user",
+          "responses": {
+            "200": {
+              "description": "User logged out successfully"
+            },
+            "401": {
+              "description": "Unauthorized",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Unauthorized",
+                    "message": "User not authenticated"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/auth": {
+        "get": {
+          "summary": "Authenticate user",
+          "description": "Authenticate user using JWT token",
+          "responses": {
+            "200": {
+              "description": "User authenticated successfully"
+            },
+            "400": {
+              "description": "Bad Request",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Bad Request",
+                    "message": "Invalid input"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Unauthorized",
+                    "message": "Unauthorized"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/water/day/{date}": {
+        "get": {
+          "summary": "Get water records for a specific day",
+          "parameters": [
+            {
+              "name": "date",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "date"
+              },
+              "description": "Date for which to retrieve water records"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Water records retrieved successfully"
+            },
+            "400": {
+              "description": "Bad Request",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Bad Request",
+                    "message": "Invalid input"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Unauthorized",
+                    "message": "Unauthorized"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Not Found",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Not Found",
+                    "message": "No water records found for the specified date"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/water/month/{date}": {
+        "get": {
+          "summary": "Get water records for a specific month",
+          "parameters": [
+            {
+              "name": "date",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "date"
+              },
+              "description": "Month for which to retrieve water records"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Water records retrieved successfully"
+            },
+            "400": {
+              "description": "Bad Request",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Bad Request",
+                    "message": "Invalid input"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Unauthorized",
+                    "message": "Unauthorized"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Not Found",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Not Found",
+                    "message": "No water records found for the specified month"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "CreateUser": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "minLength": 2
+            },
+            "password": {
+              "type": "string",
+              "minLength": 6
+            }
+          },
+          "required": ["email", "password"]
+        },
+        "LoginUser": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string",
+              "format": "email",
+              "minLength": 2
+            },
+            "password": {
+              "type": "string",
+              "minLength": 6
+            }
+          },
+          "required": ["email", "password"]
+        },
+        "CreateWater": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "integer",
+              "description": "UNIX timestamp of the water record date"
+            },
+            "amount": {
+              "type": "number",
+              "minimum": 10,
+              "maximum": 3000
+            }
+          },
+          "required": ["date", "amount"]
+        },
+        "UpdateWater": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "integer",
+              "description": "UNIX timestamp of the water record date"
+            },
+            "amount": {
+              "type": "number",
+              "minimum": 10,
+              "maximum": 3000
+            }
+          },
+          "required": ["date", "amount"]
+        }
+      }
+    }
+  }
+  
