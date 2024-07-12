@@ -1,4 +1,5 @@
 import HttpError from "../helpers/HttpError.js";
+import { User } from "../models/user.js";
 import {
   createUser,
   findUserByEmail,
@@ -83,6 +84,56 @@ export const LogOut = async (req, res, next) => {
     res.status(204).json({
       message: "No content",
     });
+  } catch (error) {
+    next(error);
+  }
+};
+export const updatedUser = async (req, res, next) => {
+  const user = req.params;
+
+  try {
+    const owner = await User.findByIdAndUpdate({ _id: user }, req.body, {
+      new: true,
+    });
+
+    if (!owner) {
+      throw HttpError(404);
+    }
+    res.status(200).send(owner);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const userCurrent = async (req, res, next) => {
+  const { userId } = req.params;
+  try {
+    const user = await User.findById({ _id: userId });
+
+    const { name, email, gender, weight, activeTime, liters } = user;
+
+    if (!user) {
+      throw HttpError(401);
+    }
+
+    res.status(200).json({
+      name,
+      email,
+      gender,
+      weight,
+      activeTime,
+      liters,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const fetchAllUsers = async (req, res, next) => {
+  try {
+    const result = await User.find();
+
+    res.status(200).send(result);
   } catch (error) {
     next(error);
   }
