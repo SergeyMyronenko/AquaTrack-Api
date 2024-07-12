@@ -10,11 +10,8 @@ export const app = express();
 app.use(cors());
 app.use(express.json());
 
-
-app.use("/users", userRouter);
-app.use("/api-water/", waterRouter);
-// app.use("/water/");
-
+app.use("/api/users/", userRouter);
+app.use("/api/water/", waterRouter);
 
 app.use((_, res) => {
   res.status(404).json({ message: "Route not found" });

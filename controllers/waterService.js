@@ -136,3 +136,26 @@ export const getMonthWater = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getSumaryAmount = async (req, res, next) => {
+  try {
+    const { _id: owner } = req.user;
+    const startOfDay = new Date().setHours(0, 0, 0, 0);
+    const endOfDay = new Date().setHours(23, 59, 59, 999);
+
+    const todayDrinkWater = await Water.find({
+      owner,
+      date: {
+        $gte: startOfDay,
+        $lt: endOfDay,
+      },
+    });
+    const totalAmount = todayDrinkWater.reduce(
+      (sum, record) => sum + record.amount,
+      0
+    );
+    res.status(200).json({ totalAmount });
+  } catch (error) {
+    next(error);
+  }
+};
