@@ -49,12 +49,18 @@ export const SignIn = async (req, res, next) => {
     }
 
     const newUser = await updateUserWithToken(user._id);
+    console.log(newUser);
 
     res.status(200).json({
       user: {
+        _id: newUser._id,
         name: newUser.name,
         email,
-        _id,
+        avatarUrl: newUser.avatarURL,
+        gender: newUser.gender,
+        weight: newUser.weight,
+        activeTime: newUser.activeTime,
+        liters: newUser.liters,
       },
       token: newUser.accessToken,
       refreshToken: newUser.refreshToken,
@@ -93,7 +99,7 @@ export const updatedUser = async (req, res, next) => {
 
   try {
     let userData = req.body;
-    console.log(userData);
+
     if (req.file) {
       const avatarURL = req.file.path;
       userData.avatarURL = avatarURL;
