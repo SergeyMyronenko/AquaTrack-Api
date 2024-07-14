@@ -17,8 +17,6 @@ export const SignUp = async (req, res, next) => {
       throw HttpError(409, "User already exist");
     }
 
-    // const avatarURL = null;
-
     await createUser({ email, password });
 
     const user = await findUserByEmail(email);
@@ -88,18 +86,27 @@ export const LogOut = async (req, res, next) => {
     next(error);
   }
 };
+
 export const updatedUser = async (req, res, next) => {
-  const user = req.params;
+  const { userId } = req.params;
 
   try {
-    const owner = await User.findByIdAndUpdate({ _id: user }, req.body, {
+    let userData = req.body;
+    console.log(userData);
+    if (req.file) {
+      const avatarURL = req.file.path;
+      userData.avatarURL = avatarURL;
+    }
+
+    const result = await User.findByIdAndUpdate(userId, userData, {
       new: true,
     });
 
-    if (!owner) {
+    if (!result) {
       throw HttpError(404);
     }
-    res.status(200).send(owner);
+
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }
@@ -117,6 +124,7 @@ export const userCurrent = async (req, res, next) => {
     }
 
     res.status(200).json({
+      _id,
       name,
       email,
       gender,
@@ -133,7 +141,7 @@ export const fetchAllUsers = async (req, res, next) => {
   try {
     const result = await User.find();
 
-    res.status(200).send(result);
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }
