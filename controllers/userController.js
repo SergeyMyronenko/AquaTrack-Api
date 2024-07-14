@@ -48,12 +48,13 @@ export const SignIn = async (req, res, next) => {
       throw HttpError(401, "Password is wrong");
     }
 
-    const newUser = await updateUserWithToken(user.id);
+    const newUser = await updateUserWithToken(user._id);
 
     res.status(200).json({
       user: {
         name: newUser.name,
         email,
+        _id,
       },
       token: newUser.accessToken,
       refreshToken: newUser.refreshToken,
