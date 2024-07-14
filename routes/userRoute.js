@@ -13,6 +13,7 @@ import {
 } from "../controllers/userController.js";
 import { refreshAuth } from "../middlewares/refreshAuth.js";
 import { auth } from "../middlewares/authenticate.js";
+import { upload } from "../middlewares/upload.js";
 
 const userRouter = express.Router();
 
@@ -24,7 +25,7 @@ userRouter.get("/refresh", refreshAuth, refreshToken);
 
 userRouter.post("/logout", auth, LogOut);
 
-userRouter.put("/:userId", auth, updatedUser);
+userRouter.put("/:userId", auth, upload.single("avatar"), updatedUser);
 
 userRouter.get("/:userId", auth, userCurrent);
 

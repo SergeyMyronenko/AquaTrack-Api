@@ -18,9 +18,11 @@ const userSchema = new Schema(
     },
     avatarURL: {
       type: String,
+      default: null,
     },
     gender: {
       type: String,
+      enum: ["man", "woman"],
       default: null,
     },
     weight: {
