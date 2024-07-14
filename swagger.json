@@ -1,0 +1,452 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "User and Water API",
+    "description": "API для управления пользователями и водным потреблением"
+  },
+  "servers": [
+    {
+      "url": "https://aquatrack-api-crcb.onrender.com",
+      "description": "Main server"
+    }
+  ],
+  "paths": {
+    "/register": {
+      "post": {
+        "summary": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUser"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Bad Request",
+                  "message": "Invalid input"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Conflict",
+                  "message": "User already exists"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Internal Server Error",
+                  "message": "An unexpected error occurred"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "summary": "Login a user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginUser"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User logged in successfully"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Bad Request",
+                  "message": "Invalid input"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Email or password is incorrect"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Internal Server Error",
+                  "message": "An unexpected error occurred"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/refresh": {
+      "get": {
+        "summary": "Refresh authentication token",
+        "responses": {
+          "200": {
+            "description": "Token refreshed successfully"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Invalid or expired refresh token"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Internal Server Error",
+                  "message": "An unexpected error occurred"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/logout": {
+      "post": {
+        "summary": "Logout a user",
+        "responses": {
+          "200": {
+            "description": "User logged out successfully"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "User not authenticated"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Internal Server Error",
+                  "message": "An unexpected error occurred"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth": {
+      "get": {
+        "summary": "Authenticate user",
+        "description": "Authenticate user using JWT token",
+        "responses": {
+          "200": {
+            "description": "User authenticated successfully"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Bad Request",
+                  "message": "Invalid input"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Unauthorized"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Internal Server Error",
+                  "message": "An unexpected error occurred"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/water/day/{date}": {
+      "get": {
+        "summary": "Get water records for a specific day",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Date for which to retrieve water records"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Water records retrieved successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "waterRecords": [
+                    {
+                      "date": 1625011200,
+                      "amount": 1500
+                    },
+                    {
+                      "date": 1625097600,
+                      "amount": 1200
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Bad Request",
+                  "message": "Invalid input"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Not Found",
+                  "message": "No water records found for the specified date"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Internal Server Error",
+                  "message": "An unexpected error occurred"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/water/month/{date}": {
+      "get": {
+        "summary": "Get water records for a specific month",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Month for which to retrieve water records"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Water records retrieved successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "waterRecords": [
+                    {
+                      "date": 1625011200,
+                      "amount": 1500
+                    },
+                    {
+                      "date": 1625097600,
+                      "amount": 1200
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Bad Request",
+                  "message": "Invalid input"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Not Found",
+                  "message": "No water records found for the specified month"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Internal Server Error",
+                  "message": "An unexpected error occurred"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateUser": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "john_doe"
+          },
+          "password": {
+            "type": "string",
+            "example": "mypassword123"
+          }
+        },
+        "required": ["username", "password"]
+      },
+      "LoginUser": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "john_doe"
+          },
+          "password": {
+            "type": "string",
+            "example": "mypassword123"
+          }
+        },
+        "required": ["username", "password"]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "john_doe"
+          },
+          "password": {
+            "type": "string",
+            "example": "mypassword123"
+          }
+        }
+      },
+      "WaterRecord": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "integer",
+            "example": 1625011200
+          },
+          "amount": {
+            "type": "integer",
+            "example": 1500
+          }
+        }
+      }
+    }
+  }
+}
