@@ -12,7 +12,7 @@
     }
   ],
   "paths": {
-    "/register": {
+    "/api/users/register": {
       "post": {
         "summary": "Register a new user",
         "requestBody": {
@@ -65,7 +65,7 @@
         }
       }
     },
-    "/login": {
+    "/api/users/login": {
       "post": {
         "summary": "Login a user",
         "requestBody": {
@@ -118,7 +118,7 @@
         }
       }
     },
-    "/refresh": {
+    "/api/users/refresh": {
       "get": {
         "summary": "Refresh authentication token",
         "responses": {
@@ -150,7 +150,7 @@
         }
       }
     },
-    "/logout": {
+    "/api/users/logout": {
       "post": {
         "summary": "Logout a user",
         "responses": {
@@ -182,13 +182,33 @@
         }
       }
     },
-    "/auth": {
-      "get": {
-        "summary": "Authenticate user",
-        "description": "Authenticate user using JWT token",
+    "/api/users/{userId}": {
+      "put": {
+        "summary": "Update user information",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the user to update"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUser"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "User authenticated successfully"
+            "description": "User updated successfully"
           },
           "400": {
             "description": "Bad Request",
@@ -207,7 +227,70 @@
               "application/json": {
                 "example": {
                   "error": "Unauthorized",
-                  "message": "Unauthorized"
+                  "message": "User not authorized to update"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Internal Server Error",
+                  "message": "An unexpected error occurred"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Get user information",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the user to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User retrieved successfully"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Bad Request",
+                  "message": "Invalid input"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "User not authorized to retrieve"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Not Found",
+                  "message": "User not found"
                 }
               }
             }
@@ -226,40 +309,23 @@
         }
       }
     },
-    "/water/day/{date}": {
+    "/api/users/{userId}/water": {
       "get": {
-        "summary": "Get water records for a specific day",
+        "summary": "Get water data for user",
         "parameters": [
           {
-            "name": "date",
+            "name": "userId",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             },
-            "description": "Date for which to retrieve water records"
+            "description": "ID of the user to retrieve water data for"
           }
         ],
         "responses": {
           "200": {
-            "description": "Water records retrieved successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "waterRecords": [
-                    {
-                      "date": 1625011200,
-                      "amount": 1500
-                    },
-                    {
-                      "date": 1625097600,
-                      "amount": 1200
-                    }
-                  ]
-                }
-              }
-            }
+            "description": "Water data retrieved successfully"
           },
           "400": {
             "description": "Bad Request",
@@ -289,7 +355,7 @@
               "application/json": {
                 "example": {
                   "error": "Not Found",
-                  "message": "No water records found for the specified date"
+                  "message": "User not found"
                 }
               }
             }
@@ -305,43 +371,31 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/water/month/{date}": {
-      "get": {
-        "summary": "Get water records for a specific month",
+    "/api/water/{id}": {
+      "delete": {
+        "summary": "Delete water data",
         "parameters": [
           {
-            "name": "date",
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "date"
+              "type": "string"
             },
-            "description": "Month for which to retrieve water records"
+            "description": "ID of the water data to delete"
           }
         ],
         "responses": {
           "200": {
-            "description": "Water records retrieved successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "waterRecords": [
-                    {
-                      "date": 1625011200,
-                      "amount": 1500
-                    },
-                    {
-                      "date": 1625097600,
-                      "amount": 1200
-                    }
-                  ]
-                }
-              }
-            }
+            "description": "Water data deleted successfully"
           },
           "400": {
             "description": "Bad Request",
@@ -371,7 +425,7 @@
               "application/json": {
                 "example": {
                   "error": "Not Found",
-                  "message": "No water records found for the specified month"
+                  "message": "Water data not found"
                 }
               }
             }
@@ -387,65 +441,314 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update water data",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the water data to update"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WaterData"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Water data updated successfully"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Bad Request",
+                  "message": "Invalid input"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Not Found",
+                  "message": "Water data not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Internal Server Error",
+                  "message": "An unexpected error occurred"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/water/": {
+      "get": {
+        "summary": "Get summary amount of water data",
+        "responses": {
+          "200": {
+            "description": "Summary amount retrieved successfully"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Unauthorized"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Internal Server Error",
+                  "message": "An unexpected error occurred"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/water/day/{date}": {
+      "get": {
+        "summary": "Get water data for a specific day",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Date to retrieve water data for (YYYY-MM-DD)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Water data retrieved successfully for the day"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Bad Request",
+                  "message": "Invalid input"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Unauthorized"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Internal Server Error",
+                  "message": "An unexpected error occurred"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/water/month/{date}": {
+      "get": {
+        "summary": "Get water data for a specific month",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Month to retrieve water data for (YYYY-MM)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Water data retrieved successfully for the month"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Bad Request",
+                  "message": "Invalid input"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Unauthorized",
+                  "message": "Unauthorized"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Internal Server Error",
+                  "message": "An unexpected error occurred"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     }
   },
   "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
     "schemas": {
       "CreateUser": {
         "type": "object",
         "properties": {
           "username": {
+            "type": "string"
+          },
+          "email": {
             "type": "string",
-            "example": "john_doe"
+            "format": "email"
           },
           "password": {
             "type": "string",
-            "example": "mypassword123"
+            "format": "password"
           }
         },
-        "required": ["username", "password"]
+        "required": ["username", "email", "password"]
       },
       "LoginUser": {
         "type": "object",
         "properties": {
-          "username": {
+          "email": {
             "type": "string",
-            "example": "john_doe"
+            "format": "email"
           },
           "password": {
             "type": "string",
-            "example": "mypassword123"
+            "format": "password"
           }
         },
-        "required": ["username", "password"]
+        "required": ["email", "password"]
       },
-      "User": {
+      "UpdateUser": {
         "type": "object",
         "properties": {
           "username": {
-            "type": "string",
-            "example": "john_doe"
+            "type": "string"
           },
-          "password": {
+          "avatar": {
             "type": "string",
-            "example": "mypassword123"
+            "format": "binary"
           }
         }
       },
-      "WaterRecord": {
+      "WaterData": {
         "type": "object",
         "properties": {
           "date": {
-            "type": "integer",
-            "example": 1625011200
+            "type": "string",
+            "format": "date-time"
           },
           "amount": {
-            "type": "integer",
-            "example": 1500
+            "type": "number"
           }
-        }
+        },
+        "required": ["date", "amount"]
       }
     }
   }
