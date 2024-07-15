@@ -18,6 +18,24 @@ const userSchema = new Schema(
     },
     avatarURL: {
       type: String,
+      default: null,
+    },
+    gender: {
+      type: String,
+      enum: ["man", "woman"],
+      default: null,
+    },
+    weight: {
+      type: Number,
+      default: 0,
+    },
+    activeTime: {
+      type: Number,
+      default: 0,
+    },
+    liters: {
+      type: Number,
+      default: 0,
     },
     accessToken: {
       type: String,
