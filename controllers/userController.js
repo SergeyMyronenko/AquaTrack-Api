@@ -49,13 +49,12 @@ export const SignIn = async (req, res, next) => {
     }
 
     const newUser = await updateUserWithToken(user._id);
-    console.log(newUser);
 
     res.status(200).json({
       user: {
         _id: newUser._id,
         name: newUser.name,
-        email,
+        email: newUser.email,
         avatarUrl: newUser.avatarURL,
         gender: newUser.gender,
         weight: newUser.weight,
@@ -82,9 +81,9 @@ export const refreshToken = async (req, res, next) => {
 };
 
 export const LogOut = async (req, res, next) => {
-  const { id } = req.user;
+  const { _id } = req.user;
   try {
-    await updateUserWithToken(id);
+    await updateUserWithToken(_id);
 
     res.status(204).json({
       message: "No content",
@@ -120,20 +119,20 @@ export const updatedUser = async (req, res, next) => {
 };
 
 export const userCurrent = async (req, res, next) => {
-  const { userId } = req.params;
-  try {
-    const user = await User.findById({ _id: userId });
+  const token = req.user.accessToken;
 
-    const { name, email, gender, weight, activeTime, liters } = user;
+  try {
+    const user = await User.findOne({ accessToken: token });
+    const { name, email, avatarURL, gender, weight, activeTime, liters } = user;
 
     if (!user) {
       throw HttpError(401);
     }
 
     res.status(200).json({
-      _id,
       name,
       email,
+      avatarURL,
       gender,
       weight,
       activeTime,
@@ -146,7 +145,14 @@ export const userCurrent = async (req, res, next) => {
 
 export const fetchAllUsers = async (req, res, next) => {
   try {
-    const result = await User.find();
+    const limit = parseInt(req.query.limit, 10);
+
+    let result;
+    if (limit) {
+      result = await User.find().sort({ createdAt: -1 }).limit(limit);
+    } else {
+      result = await User.find();
+    }
 
     res.status(200).json(result);
   } catch (error) {

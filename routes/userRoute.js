@@ -27,7 +27,7 @@ userRouter.post("/logout", auth, LogOut);
 
 userRouter.put("/:userId", auth, upload.single("avatar"), updatedUser);
 
-userRouter.get("/:userId", auth, userCurrent);
+userRouter.get("/current", auth, userCurrent);
 
 userRouter.get("/", fetchAllUsers);
 
