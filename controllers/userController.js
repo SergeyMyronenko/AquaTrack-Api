@@ -55,7 +55,7 @@ export const SignIn = async (req, res, next) => {
       user: {
         _id: newUser._id,
         name: newUser.name,
-        email,
+        email: newUser.email,
         avatarUrl: newUser.avatarURL,
         gender: newUser.gender,
         weight: newUser.weight,
@@ -82,9 +82,9 @@ export const refreshToken = async (req, res, next) => {
 };
 
 export const LogOut = async (req, res, next) => {
-  const { id } = req.user;
+  const { _id } = req.user;
   try {
-    await updateUserWithToken(id);
+    await updateUserWithToken(_id);
 
     res.status(204).json({
       message: "No content",
@@ -124,7 +124,7 @@ export const userCurrent = async (req, res, next) => {
   try {
     const user = await User.findById({ _id: userId });
 
-    const { name, email, gender, weight, activeTime, liters } = user;
+    const { name, email, avatarURL, gender, weight, activeTime, liters } = user;
 
     if (!user) {
       throw HttpError(401);
@@ -134,6 +134,7 @@ export const userCurrent = async (req, res, next) => {
       _id,
       name,
       email,
+      avatarURL,
       gender,
       weight,
       activeTime,
@@ -146,7 +147,14 @@ export const userCurrent = async (req, res, next) => {
 
 export const fetchAllUsers = async (req, res, next) => {
   try {
-    const result = await User.find();
+    const limit = parseInt(req.query.limit, 10);
+
+    let result;
+    if (limit) {
+      result = await User.find().sort({ createdAt: -1 }).limit(limit);
+    } else {
+      result = await User.find();
+    }
 
     res.status(200).json(result);
   } catch (error) {
