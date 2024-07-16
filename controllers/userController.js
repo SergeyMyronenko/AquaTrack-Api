@@ -49,7 +49,6 @@ export const SignIn = async (req, res, next) => {
     }
 
     const newUser = await updateUserWithToken(user._id);
-    console.log(newUser);
 
     res.status(200).json({
       user: {
@@ -120,10 +119,10 @@ export const updatedUser = async (req, res, next) => {
 };
 
 export const userCurrent = async (req, res, next) => {
-  const { userId } = req.params;
-  try {
-    const user = await User.findById({ _id: userId });
+  const token = req.user.accessToken;
 
+  try {
+    const user = await User.findOne({ accessToken: token });
     const { name, email, avatarURL, gender, weight, activeTime, liters } = user;
 
     if (!user) {
@@ -131,7 +130,6 @@ export const userCurrent = async (req, res, next) => {
     }
 
     res.status(200).json({
-      _id,
       name,
       email,
       avatarURL,
