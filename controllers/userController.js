@@ -123,13 +123,15 @@ export const userCurrent = async (req, res, next) => {
 
   try {
     const user = await User.findOne({ accessToken: token });
-    const { name, email, avatarURL, gender, weight, activeTime, liters } = user;
+    const { _id, name, email, avatarURL, gender, weight, activeTime, liters } =
+      user;
 
     if (!user) {
       throw HttpError(401);
     }
 
     res.status(200).json({
+      _id,
       name,
       email,
       avatarURL,
@@ -147,11 +149,16 @@ export const fetchAllUsers = async (req, res, next) => {
   try {
     const limit = parseInt(req.query.limit, 10);
 
+    const selectedField = "avatarURL";
+
     let result;
     if (limit) {
-      result = await User.find().sort({ createdAt: -1 }).limit(limit);
+      result = await User.find()
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .select(selectedField);
     } else {
-      result = await User.find();
+      result = await User.find().select(selectedField);
     }
 
     res.status(200).json(result);
