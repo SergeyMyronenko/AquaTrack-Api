@@ -7,6 +7,11 @@ const userSchema = new Schema(
       type: String,
       default: null,
     },
+    theme: {
+      type: String,
+      enum: ["light", "dark"],
+      default: "light",
+    },
     email: {
       type: String,
       required: [true, "Email is required"],
@@ -18,7 +23,8 @@ const userSchema = new Schema(
     },
     avatarURL: {
       type: String,
-      default: null,
+      default:
+        "https://res.cloudinary.com/dcwgkbucu/image/upload/v1721217036/aquq-track/default-icon.svg",
     },
     gender: {
       type: String,
