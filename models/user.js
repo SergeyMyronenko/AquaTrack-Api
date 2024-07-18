@@ -41,7 +41,7 @@ const userSchema = new Schema(
     },
     liters: {
       type: Number,
-      default: 0,
+      default: 0.0,
     },
     accessToken: {
       type: String,
