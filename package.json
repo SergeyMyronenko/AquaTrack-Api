@@ -31,6 +31,7 @@
     "swagger": "^0.7.5",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "url": "^0.11.3"
+    "url": "^0.11.3",
+    "uuid": "^10.0.0"
   }
 }
