@@ -2,7 +2,9 @@ import HttpError from "../helpers/HttpError.js";
 import { User } from "../models/user.js";
 import axios from "axios";
 import { URL } from "url";
-import queryString from 'query-string';
+import queryString from "query-string";
+import jwt from "jsonwebtoken";
+import { v4 as uuidv4 } from "uuid"; // Правильний імпорт uuid
 import {
   createUser,
   findUserByEmail,
@@ -11,7 +13,13 @@ import {
   updateUserTokens,
 } from "../services/userServices.js";
 
-const { BASE_URL } = process.env;
+const {
+  BASE_URL,
+  FRONTEND_URL,
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  SECRET_KEY,
+} = process.env;
 
 export const SignUp = async (req, res, next) => {
   const { email, password } = req.body;
@@ -176,10 +184,10 @@ export const fetchAllUsers = async (req, res, next) => {
   }
 };
 
-export const googleAuth = controllerDecorator(async (req, res) => {
+export const googleAuth = async (req, res) => {
   const stringifiedParams = queryString.stringify({
-    client_id: process.env.GOOGLE_CLIENT_ID,
-    redirect_uri: `${process.env.BASE_URL}/api/auth/google-redirect`,
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: `${BASE_URL}/api/auth/google-redirect`,
     scope: [
       "https://www.googleapis.com/auth/userinfo.email",
       "https://www.googleapis.com/auth/userinfo.profile",
@@ -191,61 +199,65 @@ export const googleAuth = controllerDecorator(async (req, res) => {
   return res.redirect(
     `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`
   );
-});
+};
 
-export const googleRedirect = controllerDecorator(async (req, res) => {
-  const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
-  const urlObj = new URL(fullUrl);
-  const urlParams = queryString.parse(urlObj.search);
-  const code = urlParams.code;
-  const tokenData = await axios({
-    url: `https://oauth2.googleapis.com/token`,
-    method: "post",
-    data: {
-      client_id: process.env.GOOGLE_CLIENT_ID,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET,
-      redirect_uri: `${process.env.BASE_URL}/api/auth/google-redirect`,
-      grant_type: "authorization_code",
-      code,
-    },
-  });
-  const userData = await axios({
-    url: "https://www.googleapis.com/oauth2/v2/userinfo",
-    method: "get",
-    headers: {
-      Authorization: `Bearer ${tokenData.data.access_token}`,
-    },
-  });
+export const googleRedirect = async (req, res) => {
+  try {
+    const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
+    const urlObj = new URL(fullUrl);
+    const urlParams = queryString.parse(urlObj.search);
+    const code = urlParams.code;
 
-  const userName = userData.data.name;
-  const userEmail = userData.data.email;
+    const tokenData = await axios({
+      url: `https://oauth2.googleapis.com/token`,
+      method: "post",
+      data: {
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        redirect_uri: `${BASE_URL}/api/auth/google-redirect`,
+        grant_type: "authorization_code",
+        code,
+      },
+    });
 
-  const existUser = await User.findOne({ email: userEmail });
+    const userData = await axios({
+      url: "https://www.googleapis.com/oauth2/v2/userinfo",
+      method: "get",
+      headers: {
+        Authorization: `Bearer ${tokenData.data.access_token}`,
+      },
+    });
 
-  if (existUser) {
-    const token = jwt.sign({ id: existUser._id }, process.env.SECRET_KEY, {
+    const userName = userData.data.name;
+    const userEmail = userData.data.email;
+
+    let user = await User.findOne({ email: userEmail });
+
+    if (user) {
+      const token = jwt.sign({ id: user._id }, SECRET_KEY, {
+        expiresIn: "48h",
+      });
+
+      await User.findByIdAndUpdate(user._id, { token });
+
+      return res.redirect(`${FRONTEND_URL}/google-redirect?token=${token}`);
+    }
+
+    user = await User.create({
+      email: userEmail,
+      name: userName,
+      password: uuidv4(),
+    });
+
+    const token = jwt.sign({ id: user._id }, SECRET_KEY, {
       expiresIn: "48h",
     });
 
-    await User.findByIdAndUpdate(existUser._id, { token });
+    await User.findByIdAndUpdate(user._id, { token });
 
-    return res.redirect(
-      `${process.env.FRONTEND_URL}/google-redirect?token=${token}`
-    );
-  } 
-  const newUser = await User.create({
-    email: userEmail,
-    name: userName,
-    password: uuidv4(),
-  });
-
-  const token = jwt.sign({ id: newUser._id }, process.env.SECRET_KEY, {
-    expiresIn: "48h",
-  });
-
-  await User.findByIdAndUpdate(newUser._id, { token });
-
-  res.redirect(
-    `${process.env.FRONTEND_URL}/google-redirect?token=${token}`
-  );
-});
+    res.redirect(`${FRONTEND_URL}/google-redirect?token=${token}`);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("An error occurred during the authentication process");
+  }
+};
