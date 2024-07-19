@@ -130,7 +130,7 @@ export const userCurrent = async (req, res, next) => {
     const user = await User.findOne({ accessToken: token });
     const { _id, name, email, avatarURL, gender, weight, activeTime, liters } =
       user;
-
+    console.log(user);
     if (!user) {
       throw HttpError(401);
     }
@@ -157,6 +157,8 @@ export const fetchAllUsers = async (req, res, next) => {
     const selectedField = "avatarURL";
 
     let result;
+    let totalUsers;
+
     if (limit) {
       result = await User.find()
         .sort({ createdAt: -1 })
@@ -166,7 +168,9 @@ export const fetchAllUsers = async (req, res, next) => {
       result = await User.find().select(selectedField);
     }
 
-    res.status(200).json(result);
+    totalUsers = await User.countDocuments();
+
+    res.status(200).json({ result, totalUsers });
   } catch (error) {
     next(error);
   }
