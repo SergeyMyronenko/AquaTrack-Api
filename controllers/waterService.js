@@ -23,7 +23,7 @@ export const deleteWater = async (req, res, next) => {
     const { id } = req.params;
     const { _id: owner } = req.user;
     const result = await Water.findOneAndDelete({ _id: id, owner });
-    if (!result) throw new HttpError(404);
+    if (!result) throw HttpError(404);
     res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -40,7 +40,7 @@ export const updateWater = async (req, res, next) => {
       { date, amount, owner },
       { new: true }
     );
-    if (!result) throw new HttpError(404);
+    if (!result) throw HttpError(404);
     res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -70,7 +70,7 @@ export const getDayWater = async (req, res, next) => {
     });
 
     if (!foundWaterDayData || foundWaterDayData.length === 0) {
-      throw new HttpError(404, "Info for this day not found");
+      throw HttpError(404, "Info for this day not found");
     }
 
     const totalDayWater = foundWaterDayData.reduce(
