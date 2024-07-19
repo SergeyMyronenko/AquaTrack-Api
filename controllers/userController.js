@@ -3,7 +3,9 @@ import { User } from "../models/user.js";
 import axios from "axios";
 import { URL } from "url";
 import queryString from "query-string";
+import { sendMail } from "../helpers/mail.js";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid"; // Правильний імпорт uuid
 import {
   createUser,
@@ -29,13 +31,13 @@ export const SignUp = async (req, res, next) => {
     if (isUser) {
       throw HttpError(409, "User already exist");
     }
-
-    await createUser({ email, password });
+    const verification = crypto.randomBytes(32).toString("hex");
+    await createUser({ email, password, verificationToken: verification });
 
     const user = await findUserByEmail(email);
 
     const newUser = await updateUserWithToken(user._id);
-
+    await sendMail(email, verification);
     res.status(201).json({
       user: {
         email,
@@ -52,6 +54,10 @@ export const SignIn = async (req, res, next) => {
   const { email, password } = req.body;
   try {
     const user = await findUserByEmail(email);
+
+    if (!user.verify) {
+      throw HttpError(401, "Please verify your email");
+    }
 
     if (!user) {
       throw HttpError(401, "Email is wrong");
@@ -259,5 +265,41 @@ export const googleRedirect = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send("An error occurred during the authentication process");
+  }
+};
+
+export const verifyUser = async (req, res, next) => {
+  try {
+    const { verificationToken } = req.params;
+    const user = await User.findOneAndUpdate(
+      { verificationToken },
+      { verify: true, verificationToken: null },
+      { new: true }
+    );
+    if (!user) throw HttpError(404);
+    res.status(200).json({ message: "Verification successful" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyCheck = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const verification = crypto.randomBytes(32).toString("hex");
+
+    const user = await User.findOneAndUpdate(
+      { email, verify: false },
+      { verificationToken: verification },
+      { new: true }
+    );
+    if (!user) throw HttpError(400);
+
+    await sendMail(email, verification);
+
+    res.status(200).json({ message: "Verification email send" });
+  } catch (error) {
+    next(error);
   }
 };
