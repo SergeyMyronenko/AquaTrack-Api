@@ -1,5 +1,10 @@
 import HttpError from "../helpers/HttpError.js";
 import { User } from "../models/user.js";
+import axios from "axios";
+import { URL } from "url";
+import queryString from "query-string";
+import jwt from "jsonwebtoken";
+import { v4 as uuidv4 } from "uuid"; // Правильний імпорт uuid
 import {
   createUser,
   findUserByEmail,
@@ -7,6 +12,14 @@ import {
   updateUserWithToken,
   updateUserTokens,
 } from "../services/userServices.js";
+
+const {
+  BASE_URL,
+  FRONTEND_URL,
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  SECRET_KEY,
+} = process.env;
 
 export const SignUp = async (req, res, next) => {
   const { email, password } = req.body;
@@ -49,13 +62,12 @@ export const SignIn = async (req, res, next) => {
     }
 
     const newUser = await updateUserWithToken(user._id);
-    console.log(newUser);
 
     res.status(200).json({
       user: {
         _id: newUser._id,
         name: newUser.name,
-        email,
+        email: newUser.email,
         avatarUrl: newUser.avatarURL,
         gender: newUser.gender,
         weight: newUser.weight,
@@ -82,9 +94,9 @@ export const refreshToken = async (req, res, next) => {
 };
 
 export const LogOut = async (req, res, next) => {
-  const { id } = req.user;
+  const { _id } = req.user;
   try {
-    await updateUserWithToken(id);
+    await updateUserWithToken(_id);
 
     res.status(204).json({
       message: "No content",
@@ -120,12 +132,13 @@ export const updatedUser = async (req, res, next) => {
 };
 
 export const userCurrent = async (req, res, next) => {
-  const { userId } = req.params;
+  const token = req.user.accessToken;
+
   try {
-    const user = await User.findById({ _id: userId });
-
-    const { name, email, gender, weight, activeTime, liters } = user;
-
+    const user = await User.findOne({ accessToken: token });
+    const { _id, name, email, avatarURL, gender, weight, activeTime, liters } =
+      user;
+    console.log(user);
     if (!user) {
       throw HttpError(401);
     }
@@ -134,6 +147,7 @@ export const userCurrent = async (req, res, next) => {
       _id,
       name,
       email,
+      avatarURL,
       gender,
       weight,
       activeTime,
@@ -146,10 +160,104 @@ export const userCurrent = async (req, res, next) => {
 
 export const fetchAllUsers = async (req, res, next) => {
   try {
-    const result = await User.find();
+    const limit = parseInt(req.query.limit, 10);
 
-    res.status(200).json(result);
+    const selectedField = "avatarURL";
+
+    let result;
+    let totalUsers;
+
+    if (limit) {
+      result = await User.find()
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .select(selectedField);
+    } else {
+      result = await User.find().select(selectedField);
+    }
+
+    totalUsers = await User.countDocuments();
+
+    res.status(200).json({ result, totalUsers });
   } catch (error) {
     next(error);
+  }
+};
+
+export const googleAuth = async (req, res) => {
+  const stringifiedParams = queryString.stringify({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: `${BASE_URL}/api/auth/google-redirect`,
+    scope: [
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile",
+    ].join(" "),
+    response_type: "code",
+    access_type: "offline",
+    prompt: "consent",
+  });
+  return res.redirect(
+    `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`
+  );
+};
+
+export const googleRedirect = async (req, res) => {
+  try {
+    const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
+    const urlObj = new URL(fullUrl);
+    const urlParams = queryString.parse(urlObj.search);
+    const code = urlParams.code;
+
+    const tokenData = await axios({
+      url: `https://oauth2.googleapis.com/token`,
+      method: "post",
+      data: {
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        redirect_uri: `${BASE_URL}/api/auth/google-redirect`,
+        grant_type: "authorization_code",
+        code,
+      },
+    });
+
+    const userData = await axios({
+      url: "https://www.googleapis.com/oauth2/v2/userinfo",
+      method: "get",
+      headers: {
+        Authorization: `Bearer ${tokenData.data.access_token}`,
+      },
+    });
+
+    const userName = userData.data.name;
+    const userEmail = userData.data.email;
+
+    let user = await User.findOne({ email: userEmail });
+
+    if (user) {
+      const token = jwt.sign({ id: user._id }, SECRET_KEY, {
+        expiresIn: "48h",
+      });
+
+      await User.findByIdAndUpdate(user._id, { token });
+
+      return res.redirect(`${FRONTEND_URL}/google-redirect?token=${token}`);
+    }
+
+    user = await User.create({
+      email: userEmail,
+      name: userName,
+      password: uuidv4(),
+    });
+
+    const token = jwt.sign({ id: user._id }, SECRET_KEY, {
+      expiresIn: "48h",
+    });
+
+    await User.findByIdAndUpdate(user._id, { token });
+
+    res.redirect(`${FRONTEND_URL}/google-redirect?token=${token}`);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("An error occurred during the authentication process");
   }
 };

@@ -10,6 +10,8 @@ import {
   updatedUser,
   userCurrent,
   fetchAllUsers,
+  googleAuth,
+  googleRedirect,
 } from "../controllers/userController.js";
 import { refreshAuth } from "../middlewares/refreshAuth.js";
 import { auth } from "../middlewares/authenticate.js";
@@ -19,6 +21,9 @@ const userRouter = express.Router();
 
 userRouter.post("/register", validateBody(createUserSchema), SignUp);
 
+userRouter.get("/google", googleAuth);
+userRouter.get("/google-redirect", googleRedirect)
+
 userRouter.post("/login", validateBody(loginUserSchema), SignIn);
 
 userRouter.get("/refresh", refreshAuth, refreshToken);
@@ -27,7 +32,7 @@ userRouter.post("/logout", auth, LogOut);
 
 userRouter.put("/:userId", auth, upload.single("avatar"), updatedUser);
 
-userRouter.get("/:userId", auth, userCurrent);
+userRouter.get("/current", auth, userCurrent);
 
 userRouter.get("/", fetchAllUsers);
 
