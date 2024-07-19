@@ -18,7 +18,7 @@ const {
   FRONTEND_URL,
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
-  SECRET_KEY,
+  SECRET_KEY_ACCESS,
 } = process.env;
 
 export const SignUp = async (req, res, next) => {
@@ -230,7 +230,7 @@ export const googleRedirect = async (req, res) => {
     let user = await User.findOne({ email: userEmail });
 
     if (user) {
-      const token = jwt.sign({ id: user._id }, SECRET_KEY, {
+      const token = jwt.sign({ id: user._id }, SECRET_KEY_ACCESS, {
         expiresIn: "48h",
       });
 
@@ -245,7 +245,7 @@ export const googleRedirect = async (req, res) => {
       password: uuidv4(),
     });
 
-    const token = jwt.sign({ id: user._id }, SECRET_KEY, {
+    const token = jwt.sign({ id: user._id }, SECRET_KEY_ACCESS, {
       expiresIn: "48h",
     });
 
