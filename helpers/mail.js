@@ -8,8 +8,8 @@ export const sendMail = async (email, verifyToken) => {
     to: email,
     from: process.env.EMAIL_SENDER,
     subject: "Welcome to AquaTrack",
-    html: `To confirm your email please click on the <a href="http://localhost:${process.env.PORT}/api/users/verify/${verifyToken}">link</a>`,
-    text: `To confirm your email please open the link http://localhost:${process.env.PORT}/api/users/verify/${verifyToken}`,
+    html: `To confirm your email please click on the <a href="https://aquatrack-api-crcb.onrender.com/api/users/verify/${verifyToken}">link</a>`,
+    text: `To confirm your email please open the link https://aquatrack-api-crcb.onrender.com/api/users/verify/${verifyToken}`,
   });
   return mail;
 };
