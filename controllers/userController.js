@@ -44,6 +44,7 @@ export const SignUp = async (req, res, next) => {
       },
       token: newUser.accessToken,
       refreshToken: newUser.refreshToken,
+      verificationToken: verification,
     });
   } catch (error) {
     next(error);

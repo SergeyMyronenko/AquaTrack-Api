@@ -1,4 +1,4 @@
-import { startOfMonth, endOfMonth } from "date-fns";
+import { startOfMonth, endOfMonth, getDaysInMonth } from "date-fns";
 
 import { Water } from "../models/water.js";
 import HttpError from "../helpers/HttpError.js";
@@ -97,11 +97,12 @@ export const getMonthWater = async (req, res, next) => {
     const startOfMonthDate = startOfMonth(dateParam);
     const endOfMonthDate = endOfMonth(dateParam);
 
+    // Встановлюємо час без зсуву по часовому поясу
     const startOfDay = new Date(startOfMonthDate);
-    startOfDay.setHours(0 - userTimezoneOffset / 60, 0, 0, 0);
+    startOfDay.setUTCHours(0, 0, 0, 0);
 
     const endOfDay = new Date(endOfMonthDate);
-    endOfDay.setHours(23 - userTimezoneOffset / 60, 59, 59, 999);
+    endOfDay.setUTCHours(23, 59, 59, 999);
 
     const utcStartTime = startOfDay.getTime();
     const utcEndTime = endOfDay.getTime();
@@ -116,20 +117,37 @@ export const getMonthWater = async (req, res, next) => {
 
     const aggregatedMonthlyData = foundWaterMonthData.reduce((acc, item) => {
       const date = new Date(item.date);
-      const dayOFMotnh = date.getDate();
+      const dayOfMonth = date.getUTCDate();
 
-      if (!acc[dayOFMotnh]) {
-        acc[dayOFMotnh] = {
-          dateParam: new Date(date.setHours(0, 0, 0, 0)).toISOString(),
+      if (!acc[dayOfMonth]) {
+        acc[dayOfMonth] = {
+          dateParam: new Date(
+            Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), dayOfMonth)
+          ).toISOString(),
           totalDayWater: 0,
         };
       }
-      acc[dayOFMotnh].totalDayWater += item.amount;
+      acc[dayOfMonth].totalDayWater += item.amount;
 
       return acc;
     }, {});
 
-    const result = Object.values(aggregatedMonthlyData);
+    const daysInMonth = getDaysInMonth(dateParam);
+    const result = [];
+
+    for (let i = 1; i <= daysInMonth; i++) {
+      if (aggregatedMonthlyData[i]) {
+        result.push(aggregatedMonthlyData[i]);
+      } else {
+        const date = new Date(
+          Date.UTC(dateParam.getUTCFullYear(), dateParam.getUTCMonth(), i)
+        );
+        result.push({
+          dateParam: date.toISOString(),
+          totalDayWater: 0,
+        });
+      }
+    }
 
     res.status(200).json(result);
   } catch (error) {
