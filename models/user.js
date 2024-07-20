@@ -41,7 +41,7 @@ const userSchema = new Schema(
     },
     liters: {
       type: Number,
-      default: 0,
+      default: 0.0,
     },
     accessToken: {
       type: String,
@@ -50,6 +50,14 @@ const userSchema = new Schema(
     refreshToken: {
       type: String,
       default: null,
+    },
+    verify: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      type: String,
+      required: [true, "Verify token is required"],
     },
   },
   { timestamps: true, versionKey: false }
