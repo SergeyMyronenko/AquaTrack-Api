@@ -13,56 +13,65 @@
   ],
   "paths": {
     "/api/users/google": {
-  "get": {
-    "tags": ["User Management"],
-    "summary": "Google authentication",
-    "responses": {
-      "200": {
-        "description": "Redirect to Google",
-        "content": {
-              "application/json": {
-                "example": {
-                  "message": "Redirect back from Google"
+      "get": {
+        "summary": "Initiate Google OAuth",
+        "description": "Redirects the user to Google's OAuth 2.0 server for authentication.",
+        "tags": ["User Management"],
+        "responses": {
+          "302": {
+            "description": "Redirect to Google's OAuth 2.0 server",
+            "headers": {
+              "Location": {
+                "description": "URL to Google's OAuth 2.0 server",
+                "schema": {
+                  "type": "string"
                 }
               }
-            } 
-      },
-      "500": {
-        "description": "Internal Server Error",
-        "content": {
-          "application/json": {
-            "example": {
-              "error": "Internal Server Error",
-              "message": "An unexpected error occurred"
             }
           }
         }
       }
-    }
-  }
-},
+    },
 "/api/users/google-redirect": {
   "get": {
+    "summary": "Handle Google OAuth redirect",
+    "description": "Handles the redirect from Google OAuth, processes the authorization code, and logs in or registers the user.",
     "tags": ["User Management"],
-    "summary": "Google authentication redirect",
+    "parameters": [
+      {
+        "name": "code",
+        "in": "query",
+        "required": true,
+        "description": "Authorization code received from Google",
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
     "responses": {
-      "200": {
-        "description": "Redirect back from Google",
-       "content": {
-              "application/json": {
-                "example": {
-                  "message": "Redirect back from Google"
-                }
-              }
-            } 
+      "302": {
+        "description": "Redirect to frontend with authentication token",
+        "headers": {
+          "Location": {
+            "description": "URL to redirect the user with the authentication token",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
       },
       "500": {
-        "description": "Internal Server Error",
+        "description": "Internal Server Error - An error occurred during the authentication process",
         "content": {
           "application/json": {
-            "example": {
-              "error": "Internal Server Error",
-              "message": "An unexpected error occurred"
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "description": "Error message"
+                }
+              }
             }
           }
         }
@@ -164,6 +173,149 @@
       
     }
   },
+  "/api/users/verify/{verificationToken}": {
+      "get": {
+        "summary": "Verify user",
+        "description": "Verifies a user based on the provided verification token.",
+        "tags": ["User Management"],
+        "parameters": [
+          {
+            "name": "verificationToken",
+            "in": "path",
+            "required": true,
+            "description": "Verification token sent to the user",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verification successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Verification successful"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found or invalid verification token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "User not found or invalid verification token"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "An error occurred during the verification process"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/verify": {
+      "get": {
+        "summary": "Send verification email",
+        "description": "Sends a verification email to the user if they are not verified.",
+        "tags": ["User Management"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "The email of the user to send the verification to",
+                    "example": "user@example.com"
+                  }
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification email sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Verification email sent"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "User not found or already verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "User not found or already verified"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "An error occurred during the verification process"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/users/login": {
       "post": {
         "tags": ["User Management"],
@@ -287,44 +439,39 @@
   },
     "/api/users/logout": {
       "post": {
+        "summary": "Log out the current user",
+        "description": "Logs out the currently authenticated user and invalidates their tokens.",
         "tags": ["User Management"],
-        "summary": "Logout a user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
-          "200": {
-            "description": "User logged out successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "message": "User logged out successfully"
-                }
-              }
-            } 
+          "204": {
+            "description": "No Content - User logged out successfully",
+            "content": {}
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "Unauthorized - Invalid or missing authentication token",
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Unauthorized",
-                  "message": "User not authenticated"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "example": {
-                  "error": "Internal Server Error",
-                  "message": "An unexpected error occurred"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Error message indicating unauthorized access."
+                    }
+                  }
                 }
               }
             }
           }
         }
       }
-    },
+    
+  },
     "/api/users/current": {
       "get": {
         "summary": "Get current user information",
@@ -395,17 +542,23 @@
   },
     "/api/users/{userId}": {
       "put": {
+        "summary": "Update user details",
+        "description": "Updates the details of a user by user ID. Allows for updating avatar image.",
         "tags": ["User Management"],
-        "summary": "Update user information",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "userId",
             "in": "path",
             "required": true,
+            "description": "ID of the user to update",
             "schema": {
               "type": "string"
-            },
-            "description": "ID of the user to update"
+            }
           }
         ],
         "requestBody": {
@@ -413,7 +566,23 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateUser"
+                "type": "object",
+                "properties": {
+                  "avatar": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "The user's avatar image"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "The user's email address"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "The user's password"
+                  }
+                }
               }
             }
           }
@@ -424,51 +593,50 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "example": {
-                  "error": "Bad Request",
-                  "message": "Invalid input"
+                  "type": "object",
+                  "properties": {
+                    "email": {
+                      "type": "string",
+                      "format": "email",
+                      "description": "The updated user's email address"
+                    },
+                    "avatarURL": {
+                      "type": "string",
+                      "description": "URL of the updated user's avatar"
+                    }
+                  }
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "Unauthorized - Invalid or missing authentication token",
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Unauthorized",
-                  "message": "User not authorized to update"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Error message indicating unauthorized access"
+                    }
+                  }
                 }
               }
             }
           },
           "404": {
-            "description": "User not found",
+            "description": "Not Found - User not found",
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Not Found",
-                  "message": "User not found"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "example": {
-                  "error": "Internal Server Error",
-                  "message": "An unexpected error occurred"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Error message indicating the user was not found"
+                    }
+                  }
                 }
               }
             }
@@ -477,84 +645,150 @@
       }
     },
     "/api/users/": {
-  "get": {
-    "tags": ["User Management"],
-    "summary": "Get all users",
-    "responses": {
-      "200": {
-        "description": "Users retrieved successfully",
-        "content": {
-              "application/json": {
-                "example": {
-                  "message": "Users retrieved successfully"
-                }
-              }
-            } 
-      },
-      "401": {
-        "description": "Unauthorized",
-        "content": {
-          "application/json": {
-            "example": {
-              "error": "Unauthorized",
-              "message": "User not authenticated"
+      "get": {
+        "summary": "Fetch all users",
+        "description": "Retrieves a list of users, optionally limited by a query parameter.",
+        "tags": ["User Management"],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum number of users to return",
+            "schema": {
+              "type": "integer",
+              "example": 10
             }
           }
-        }
-      },
-      "500": {
-        "description": "Internal Server Error",
-        "content": {
-          "application/json": {
-            "example": {
-              "error": "Internal Server Error",
-              "message": "An unexpected error occurred"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of users retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "avatarURL": {
+                            "type": "string",
+                            "description": "URL of the user's avatar"
+                          }
+                        }
+                      }
+                    },
+                    "totalUsers": {
+                      "type": "integer",
+                      "description": "Total number of users"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid query parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Error message indicating invalid query parameter"
+                    }
+                  }
+                }
+              }
             }
           }
         }
       }
     },
-    "security": [
-      {
-        "bearerAuth": []
-      }
-    ]
-  }
-},
 
 
 "/api/water": {
   "post": {
-    "tags": ["Water Management"],
-    "summary": "Create water data",
+    "summary": "Create a water record",
+    "description": "Creates a new water record for the authenticated user.",
+    "tags": ["Water"],
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
     "requestBody": {
       "required": true,
       "content": {
         "application/json": {
           "schema": {
-            "$ref": "#/components/schemas/WaterData"
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "integer",
+                "description": "Unix timestamp for the date of the water record",
+                "example": 1627893600000
+              },
+              "amount": {
+                "type": "integer",
+                "description": "Amount of water in milliliters",
+                "example": 500
+              }
+            },
+            "required": ["date", "amount"]
           }
         }
       }
     },
     "responses": {
       "201": {
-        "description": "Water data created successfully",
-        "content": {
-              "application/json": {
-                "example": {
-                  "message": "Water data created successfully"
-                }
-              }
-            } 
-      },
-      "400": {
-        "description": "Bad Request",
+        "description": "Water record created successfully",
         "content": {
           "application/json": {
-            "example": {
-              "error": "Bad Request",
-              "message": "Invalid input"
+            "schema": {
+              "type": "object",
+              "properties": {
+                "_id": {
+                  "type": "string",
+                  "example": "60d0fe4f5311236168a109ca"
+                },
+                "date": {
+                  "type": "integer",
+                  "example": 1627893600000
+                },
+                "amount": {
+                  "type": "integer",
+                  "example": 500
+                },
+                "owner": {
+                  "type": "string",
+                  "example": "60d0fe4f5311236168a109cb"
+                },
+                "__v": {
+                  "type": "integer",
+                  "example": 0
+                }
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Invalid request body",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Validation error: ..."
+                }
+              }
             }
           }
         }
@@ -563,9 +797,14 @@
         "description": "Unauthorized",
         "content": {
           "application/json": {
-            "example": {
-              "error": "Unauthorized",
-              "message": "Unauthorized"
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
             }
           }
         }
@@ -574,101 +813,32 @@
         "description": "Internal Server Error",
         "content": {
           "application/json": {
-            "example": {
-              "error": "Internal Server Error",
-              "message": "An unexpected error occurred"
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "An error occurred while creating the water record"
+                }
+              }
             }
           }
         }
       }
-    },
-    "security": [
-      {
-        "bearerAuth": []
-      }
-    ]
+    }
   }
+
 },
     "/api/water/{id}": {
-      "delete": {
-        "tags": ["Water Management"],
-        "summary": "Delete water data",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the water data to delete"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Water data deleted successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "message": "Water data deleted successfully"
-                }
-              }
-            } 
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "example": {
-                  "error": "Bad Request",
-                  "message": "Invalid input"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "example": {
-                  "error": "Unauthorized",
-                  "message": "Unauthorized"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "example": {
-                  "error": "Not Found",
-                  "message": "Water data not found"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "example": {
-                  "error": "Internal Server Error",
-                  "message": "An unexpected error occurred"
-                }
-              }
-            }
-          }
-        },
+      "put": {
+        "summary": "Update a water record",
+        "description": "Updates a specific water record of the authenticated user.",
+        "tags": ["Water"],
         "security": [
           {
             "bearerAuth": []
           }
-        ]
-      },
-      "put": {
-        "tags": ["Water Management"],
-        "summary": "Update water data",
+        ],
         "parameters": [
           {
             "name": "id",
@@ -677,7 +847,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the water data to update"
+            "description": "ID of the water record to update"
           }
         ],
         "requestBody": {
@@ -685,85 +855,76 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/WaterData"
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "integer",
+                    "description": "The date of the water record in Unix timestamp"
+                  },
+                  "amount": {
+                    "type": "integer",
+                    "description": "The amount of water consumed in milliliters"
+                  }
+                },
+                "required": []
+              },
+              "examples": {
+                "example1": {
+                  "summary": "A sample water record update",
+                  "value": {
+                    "date": 1627893600000,
+                    "amount": 750
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Water data updated successfully",
+            "description": "Water record updated successfully",
             "content": {
               "application/json": {
-                "example": {
-                  "message": "Water data updated successfully"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "example": {
-                  "error": "Bad Request",
-                  "message": "Invalid input"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "example": {
-                  "error": "Unauthorized",
-                  "message": "Unauthorized"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "_id": {
+                      "type": "string",
+                      "example": "60d0fe4f5311236168a109ca"
+                    },
+                    "date": {
+                      "type": "integer",
+                      "example": 1627893600000
+                    },
+                    "amount": {
+                      "type": "integer",
+                      "example": 750
+                    },
+                    "owner": {
+                      "type": "string",
+                      "example": "60d0fe4f5311236168a109cb"
+                    },
+                    "__v": {
+                      "type": "integer",
+                      "example": 0
+                    }
+                  }
                 }
               }
             }
           },
           "404": {
-            "description": "Not Found",
+            "description": "Water record not found",
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Not Found",
-                  "message": "Water data not found"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "example": {
-                  "error": "Internal Server Error",
-                  "message": "An unexpected error occurred"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
-    "/api/water/": {
-      "get": {
-        "tags": ["Water Management"],
-        "summary": "Get summary amount of water data",
-        "responses": {
-          "200": {
-            "description": "Summary amount retrieved successfully",
-            "content": {
-              "application/json": {
-                "example": {
-                  "message": "Summary amount retrieved successfully"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Water record not found"
+                    }
+                  }
                 }
               }
             }
@@ -772,9 +933,14 @@
             "description": "Unauthorized",
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Unauthorized",
-                  "message": "Unauthorized"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
                 }
               }
             }
@@ -783,25 +949,89 @@
             "description": "Internal Server Error",
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Internal Server Error",
-                  "message": "An unexpected error occurred"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "An error occurred while updating the water record"
+                    }
+                  }
                 }
               }
             }
           }
-        },
+        }
+      }
+    },
+    "/api/water/":{
+      "get": {
+        "summary": "Get today's total water consumption",
+        "description": "Fetches the total amount of water consumed by the authenticated user today.",
+        "tags": ["Water"],
         "security": [
           {
             "bearerAuth": []
           }
-        ]
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the total water consumption for today",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalAmount": {
+                      "type": "integer",
+                      "example": 1500,
+                      "description": "The total amount of water consumed today in milliliters"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "An error occurred while retrieving the total water consumption"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/water/day/{date}": {
       "get": {
-        "tags": ["Water Management"],
-        "summary": "Get water data for a specific day",
+        "summary": "Get water consumption for a specific day",
+        "description": "Fetches the total amount of water consumed by the authenticated user on a specific day.",
+        "tags": ["Water"],
         "parameters": [
           {
             "name": "date",
@@ -809,29 +1039,31 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "date"
-            },
-            "description": "Date to retrieve water data for (YYYY-MM-DD)"
+              "format": "date",
+              "example": "2024-07-19",
+              "description": "The date for which to fetch the water consumption in YYYY-MM-DD format."
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
           }
         ],
         "responses": {
           "200": {
-            "description": "Water data retrieved successfully for the day",
+            "description": "Successfully retrieved the total water consumption for the specified day",
             "content": {
               "application/json": {
-                "example": {
-                  "message": "Water data retrieved successfully for the day"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "example": {
-                  "error": "Bad Request",
-                  "message": "Invalid input"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalAmount": {
+                      "type": "integer",
+                      "example": 1200,
+                      "description": "The total amount of water consumed on the specified day in milliliters"
+                    }
+                  }
                 }
               }
             }
@@ -840,9 +1072,14 @@
             "description": "Unauthorized",
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Unauthorized",
-                  "message": "Unauthorized"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
                 }
               }
             }
@@ -851,25 +1088,26 @@
             "description": "Internal Server Error",
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Internal Server Error",
-                  "message": "An unexpected error occurred"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "An error occurred while retrieving the water consumption"
+                    }
+                  }
                 }
               }
             }
           }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
-      }
-    },
+        }
+    }
+  },
     "/api/water/month/{date}": {
       "get": {
-        "tags": ["Water Management"],
-        "summary": "Get water data for a specific month",
+        "summary": "Get water consumption for a specific month",
+        "description": "Fetches the daily water consumption for the specified month, aggregated by day.",
+        "tags": ["Water"],
         "parameters": [
           {
             "name": "date",
@@ -877,29 +1115,58 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "date"
-            },
-            "description": "Month to retrieve water data for (YYYY-MM)"
+              "format": "date",
+              "example": "2024-07-01",
+              "description": "The month for which to fetch water consumption data, formatted as YYYY-MM-01. Use Unix timestamp in milliseconds."
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
           }
         ],
         "responses": {
           "200": {
-            "description": "Water data retrieved successfully for the month",
+            "description": "Successfully retrieved the daily water consumption for the specified month",
             "content": {
               "application/json": {
-                "example": {
-                  "message": "Water data retrieved successfully for the month"
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "dateParam": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The date for which the daily water consumption is reported, in ISO 8601 format."
+                      },
+                      "totalDayWater": {
+                        "type": "integer",
+                        "description": "The total amount of water consumed on that day in milliliters."
+                      }
+                    },
+                    "example": {
+                      "dateParam": "2024-07-01T00:00:00.000Z",
+                      "totalDayWater": 1200
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request",
+            "description": "Bad Request. Invalid date format or date out of range.",
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Bad Request",
-                  "message": "Invalid input"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Invalid date format or Date must start from 2024/01/01 or Date from future"
+                    }
+                  }
                 }
               }
             }
@@ -908,9 +1175,14 @@
             "description": "Unauthorized",
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Unauthorized",
-                  "message": "Unauthorized"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Unauthorized"
+                    }
+                  }
                 }
               }
             }
@@ -919,19 +1191,19 @@
             "description": "Internal Server Error",
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Internal Server Error",
-                  "message": "An unexpected error occurred"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "An error occurred while retrieving the monthly water consumption"
+                    }
+                  }
                 }
               }
             }
           }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ]
+        }
       }
     }
   },
