@@ -4,7 +4,7 @@ import axios from "axios";
 import { URL } from "url";
 import queryString from "query-string";
 import jwt from "jsonwebtoken";
-import { v4 as uuidv4 } from "uuid"; // Правильний імпорт uuid
+import { v4 as uuidv4 } from "uuid";
 import {
   createUser,
   findUserByEmail,
@@ -20,6 +20,11 @@ const {
   GOOGLE_CLIENT_SECRET,
   SECRET_KEY_ACCESS,
 } = process.env;
+
+console.log("GOOGLE_CLIENT_ID:", GOOGLE_CLIENT_ID);
+console.log("GOOGLE_CLIENT_SECRET:", GOOGLE_CLIENT_SECRET);
+console.log("BASE_URL:", BASE_URL);
+console.log("FRONTEND_URL:", FRONTEND_URL);
 
 export const SignUp = async (req, res, next) => {
   const { email, password } = req.body;
@@ -183,7 +188,7 @@ export const fetchAllUsers = async (req, res, next) => {
 export const googleAuth = async (req, res) => {
   const stringifiedParams = queryString.stringify({
     client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: `${BASE_URL}/api/auth/google-redirect`,
+    redirect_uri: `${BASE_URL}/api/users/google-redirect`,
     scope: [
       "https://www.googleapis.com/auth/userinfo.email",
       "https://www.googleapis.com/auth/userinfo.profile",
@@ -192,6 +197,9 @@ export const googleAuth = async (req, res) => {
     access_type: "offline",
     prompt: "consent",
   });
+
+  console.log("Redirecting to:", `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`);
+
   return res.redirect(
     `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`
   );
@@ -204,17 +212,21 @@ export const googleRedirect = async (req, res) => {
     const urlParams = queryString.parse(urlObj.search);
     const code = urlParams.code;
 
+    console.log("Received code:", code);
+
     const tokenData = await axios({
       url: `https://oauth2.googleapis.com/token`,
       method: "post",
       data: {
         client_id: GOOGLE_CLIENT_ID,
         client_secret: GOOGLE_CLIENT_SECRET,
-        redirect_uri: `${BASE_URL}/api/auth/google-redirect`,
+        redirect_uri: `${BASE_URL}/api/users/google-redirect`,
         grant_type: "authorization_code",
         code,
       },
     });
+
+    console.log("Token data:", tokenData.data);
 
     const userData = await axios({
       url: "https://www.googleapis.com/oauth2/v2/userinfo",
@@ -223,6 +235,8 @@ export const googleRedirect = async (req, res) => {
         Authorization: `Bearer ${tokenData.data.access_token}`,
       },
     });
+
+    console.log("User data:", userData.data);
 
     const userName = userData.data.name;
     const userEmail = userData.data.email;
