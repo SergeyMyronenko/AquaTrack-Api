@@ -1,5 +1,5 @@
 import express from "express";
-import { WaterDate } from "../middlewares/waterMidellwares.js";
+import { WaterDate, WaterMonth } from "../middlewares/waterMidellwares.js";
 
 import { joiValidateDataMiddleware } from "../helpers/validateBody.js";
 
@@ -38,6 +38,6 @@ waterRouter.put(
 );
 waterRouter.get("/", auth, getSumaryAmount);
 waterRouter.get("/day/:date", WaterDate, auth, getDayWater);
-waterRouter.get("/month/:date", WaterDate, auth, getMonthWater);
+waterRouter.get("/month/:date", WaterMonth, auth, getMonthWater);
 
 export default waterRouter;
