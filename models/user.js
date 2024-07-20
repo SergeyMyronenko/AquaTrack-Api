@@ -23,8 +23,8 @@ const userSchema = new Schema(
     },
     avatarURL: {
       type: String,
-      default:
-        "https://res.cloudinary.com/dcwgkbucu/image/upload/v1721217036/aquq-track/default-icon.svg",
+      default: null,
+      // "https://res.cloudinary.com/dcwgkbucu/image/upload/v1721217036/aquq-track/default-icon.svg"
     },
     gender: {
       type: String,
