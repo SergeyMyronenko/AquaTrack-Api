@@ -277,7 +277,8 @@ export const verifyUser = async (req, res, next) => {
       { new: true }
     );
     if (!user) throw HttpError(404);
-    res.status(200).json({ message: "Verification successful" });
+
+    res.redirect(process.env.CLIENT_URL);
   } catch (error) {
     next(error);
   }
