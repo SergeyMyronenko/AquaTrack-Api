@@ -18,7 +18,14 @@
     "summary": "Google authentication",
     "responses": {
       "200": {
-        "description": "Redirect to Google"
+        "description": "Redirect to Google",
+        "content": {
+              "application/json": {
+                "example": {
+                  "message": "Redirect back from Google"
+                }
+              }
+            } 
       },
       "500": {
         "description": "Internal Server Error",
@@ -40,7 +47,14 @@
     "summary": "Google authentication redirect",
     "responses": {
       "200": {
-        "description": "Redirect back from Google"
+        "description": "Redirect back from Google",
+       "content": {
+              "application/json": {
+                "example": {
+                  "message": "Redirect back from Google"
+                }
+              }
+            } 
       },
       "500": {
         "description": "Internal Server Error",
@@ -58,75 +72,131 @@
 },
     "/api/users/register": {
       "post": {
-        "tags": ["User Management"],
         "summary": "Register a new user",
+        "description": "Registers a new user and sends a verification email.",
+        "tags": ["User Management"],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateUser"
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "The user's email address."
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "The user's password."
+                  }
+                },
+                "required": ["email", "password"]
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "User registered successfully"
-          },
-          "400": {
-            "description": "Bad Request",
+            "description": "User registered successfully",
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Bad Request",
-                  "message": "Invalid input"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "email": {
+                          "type": "string",
+                          "format": "email",
+                          "description": "The registered user's email address."
+                        }
+                      }
+                    },
+                    "token": {
+                      "type": "string",
+                      "description": "The access token for the newly registered user."
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "description": "The refresh token for the newly registered user."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input or validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Error message indicating what went wrong."
+                    }
+                  }
                 }
               }
             }
           },
           "409": {
-            "description": "Conflict",
+            "description": "Conflict - User already exists",
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Conflict",
-                  "message": "User already exists"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "example": {
-                  "error": "Internal Server Error",
-                  "message": "An unexpected error occurred"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Error message indicating the user already exists."
+                    }
+                  }
                 }
               }
             }
           }
         }
-      }
-    },
+      
+    }
+  },
     "/api/users/login": {
       "post": {
         "tags": ["User Management"],
-        "summary": "Login a user",
+        "summary": "Log in a user",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginUser"
+                "$ref": "#/components/schemas/LoginRequest"
+              },
+              "examples": {
+                "example": {
+                  "summary": "Example login request",
+                  "value": {
+                    "email": "john.doe@example.com",
+                    "password": "securepassword"
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "User logged in successfully"
+            "description": "Successful login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad Request",
@@ -134,7 +204,7 @@
               "application/json": {
                 "example": {
                   "error": "Bad Request",
-                  "message": "Invalid input"
+                  "message": "Invalid email or password format"
                 }
               }
             }
@@ -145,7 +215,7 @@
               "application/json": {
                 "example": {
                   "error": "Unauthorized",
-                  "message": "Email or password is incorrect"
+                  "message": "Invalid email or password, or account not verified"
                 }
               }
             }
@@ -166,44 +236,69 @@
     },
     "/api/users/refresh": {
       "get": {
+        "summary": "Refresh user tokens",
+        "description": "Refreshes the access and refresh tokens for the currently authenticated user.",
         "tags": ["User Management"],
-        "summary": "Refresh authentication token",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Token refreshed successfully"
+            "description": "Successfully refreshed tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string",
+                      "description": "The new access token."
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "description": "The new refresh token."
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized",
             "content": {
               "application/json": {
-                "example": {
-                  "error": "Unauthorized",
-                  "message": "Invalid or expired refresh token"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "example": {
-                  "error": "Internal Server Error",
-                  "message": "An unexpected error occurred"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "description": "Error message indicating unauthorized access."
+                    }
+                  }
                 }
               }
             }
           }
         }
-      }
-    },
+      
+    }
+  },
     "/api/users/logout": {
       "post": {
         "tags": ["User Management"],
         "summary": "Logout a user",
         "responses": {
           "200": {
-            "description": "User logged out successfully"
+            "description": "User logged out successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User logged out successfully"
+                }
+              }
+            } 
           },
           "401": {
             "description": "Unauthorized",
@@ -231,43 +326,73 @@
       }
     },
     "/api/users/current": {
-  "get": {
-    "tags": ["User Management"],
-    "summary": "Get current user information",
-    "responses": {
-      "200": {
-        "description": "User retrieved successfully"
-      },
-      "401": {
-        "description": "Unauthorized",
-        "content": {
-          "application/json": {
-            "example": {
-              "error": "Unauthorized",
-              "message": "User not authenticated"
-            }
+      "get": {
+        "summary": "Get current user information",
+        "tags": ["User Management"],
+        "security": [
+          {
+            "BearerAuth": []
           }
-        }
-      },
-      "500": {
-        "description": "Internal Server Error",
-        "content": {
-          "application/json": {
-            "example": {
-              "error": "Internal Server Error",
-              "message": "An unexpected error occurred"
+        ],
+        "responses": {
+          "200": {
+            "description": "Current user information retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "_id": {
+                      "type": "string",
+                      "example": "60b8c49f6c3e3a1f5c8b4567"
+                    },
+                    "name": {
+                      "type": "string",
+                      "example": "John Doe"
+                    },
+                    "email": {
+                      "type": "string",
+                      "example": "john.doe@example.com"
+                    },
+                    "avatarURL": {
+                      "type": "string",
+                      "example": "http://example.com/avatar.jpg"
+                    },
+                    "gender": {
+                      "type": "string",
+                      "example": "male"
+                    },
+                    "weight": {
+                      "type": "number",
+                      "example": 75
+                    },
+                    "activeTime": {
+                      "type": "number",
+                      "example": 30
+                    },
+                    "liters": {
+                      "type": "number",
+                      "example": 2.5
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
             }
           }
         }
       }
-    },
-    "security": [
-      {
-        "bearerAuth": []
-      }
-    ]
-  }
-},
+    
+  },
     "/api/users/{userId}": {
       "put": {
         "tags": ["User Management"],
@@ -295,7 +420,14 @@
         },
         "responses": {
           "200": {
-            "description": "User updated successfully"
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad Request",
@@ -315,6 +447,17 @@
                 "example": {
                   "error": "Unauthorized",
                   "message": "User not authorized to update"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Not Found",
+                  "message": "User not found"
                 }
               }
             }
@@ -339,7 +482,14 @@
     "summary": "Get all users",
     "responses": {
       "200": {
-        "description": "Users retrieved successfully"
+        "description": "Users retrieved successfully",
+        "content": {
+              "application/json": {
+                "example": {
+                  "message": "Users retrieved successfully"
+                }
+              }
+            } 
       },
       "401": {
         "description": "Unauthorized",
@@ -389,7 +539,14 @@
     },
     "responses": {
       "201": {
-        "description": "Water data created successfully"
+        "description": "Water data created successfully",
+        "content": {
+              "application/json": {
+                "example": {
+                  "message": "Water data created successfully"
+                }
+              }
+            } 
       },
       "400": {
         "description": "Bad Request",
@@ -449,7 +606,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Water data deleted successfully"
+            "description": "Water data deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Water data deleted successfully"
+                }
+              }
+            } 
           },
           "400": {
             "description": "Bad Request",
@@ -528,7 +692,14 @@
         },
         "responses": {
           "200": {
-            "description": "Water data updated successfully"
+            "description": "Water data updated successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Water data updated successfully"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad Request",
@@ -588,7 +759,14 @@
         "summary": "Get summary amount of water data",
         "responses": {
           "200": {
-            "description": "Summary amount retrieved successfully"
+            "description": "Summary amount retrieved successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Summary amount retrieved successfully"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized",
@@ -638,7 +816,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Water data retrieved successfully for the day"
+            "description": "Water data retrieved successfully for the day",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Water data retrieved successfully for the day"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad Request",
@@ -699,7 +884,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Water data retrieved successfully for the month"
+            "description": "Water data retrieved successfully for the month",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Water data retrieved successfully for the month"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad Request",
@@ -755,9 +947,7 @@
       "CreateUser": {
         "type": "object",
         "properties": {
-          "username": {
-            "type": "string"
-          },
+          
           "email": {
             "type": "string",
             "format": "email"
@@ -767,8 +957,67 @@
             "format": "password"
           }
         },
-        "required": ["username", "email", "password"]
+        "required": ["email", "password"]
       },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john.doe@example.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "securepassword"
+          }
+        },
+        "required": ["email", "password"]
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "object",
+            "properties": {
+              "_id": {
+                "type": "string",
+                "example": "60b8c49f6c3e3a1f5c8b4567"
+              },
+              "name": {
+                "type": "string",
+                "example": "John Doe"
+              },
+              "email": {
+                "type": "string",
+                "example": "john.doe@example.com"
+              },
+              "avatarUrl": {
+                "type": "string",
+                "example": "http://example.com/avatar.jpg"
+              },
+              "gender": {
+                "type": "string",
+                "example": "male"
+              },
+              "weight": {
+                "type": "number",
+                "example": 75
+              },
+              "activeTime": {
+                "type": "number",
+                "example": 30
+              },
+              "liters": {
+                "type": "number",
+                "example": 2.5
+              }
+            }
+          }
+        }
+      },
+
       "LoginUser": {
         "type": "object",
         "properties": {
@@ -786,12 +1035,42 @@
       "UpdateUser": {
         "type": "object",
         "properties": {
-          "username": {
-            "type": "string"
+          "name": {
+            "type": "string",
+            "example": "John Doe"
           },
-          "avatar": {
+          "email": {
+            "type": "string",
+            "example": "john.doe@example.com"
+          },
+          "gender": {
+            "type": "string",
+            "example": "male"
+          },
+          "weight": {
+            "type": "number",
+            "example": 75
+          },
+          "activeTime": {
+            "type": "number",
+            "example": 30
+          },
+          "liters": {
+            "type": "number",
+            "example": 2.5
+          },
+          "avatarURL": {
             "type": "string",
             "format": "binary"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Unauthorized"
           }
         }
       },
@@ -811,3 +1090,4 @@
     }
   }
 }
+
