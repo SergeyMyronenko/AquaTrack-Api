@@ -160,6 +160,7 @@ export const userCurrent = async (req, res, next) => {
       _id,
       name,
       email,
+      theme,
       avatarURL,
       gender,
       weight,
@@ -210,7 +211,10 @@ export const googleAuth = async (req, res) => {
     prompt: "consent",
   });
 
-  console.log("Redirecting to:", `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`);
+  console.log(
+    "Redirecting to:",
+    `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`
+  );
 
   return res.redirect(
     `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`
