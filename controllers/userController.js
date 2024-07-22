@@ -1,6 +1,3 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 import HttpError from "../helpers/HttpError.js";
 import { User } from "../models/user.js";
 import axios from "axios";
@@ -9,7 +6,6 @@ import queryString from "query-string";
 import { sendMail } from "../helpers/mail.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { v4 as uuidv4 } from "uuid"; // Правильний імпорт uuid
 
 import {
   createUser,
@@ -18,14 +14,6 @@ import {
   updateUserWithToken,
   updateUserTokens,
 } from "../services/userServices.js";
-
-const {
-  BASE_URL,
-  FRONTEND_URL,
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  SECRET_KEY_ACCESS,
-} = process.env;
 
 
 export const SignUp = async (req, res, next) => {
@@ -207,8 +195,8 @@ export const fetchAllUsers = async (req, res, next) => {
 
 export const googleAuth = async (req, res) => {
   const stringifiedParams = queryString.stringify({
-    client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: `${BASE_URL}/api/users/google-redirect`,
+    client_id: process.env.GOOGLE_CLIENT_ID,
+    redirect_uri: `${process.env.BASE_URL}/api/users/google-redirect`,
     scope: [
       "https://www.googleapis.com/auth/userinfo.email",
       "https://www.googleapis.com/auth/userinfo.profile",
@@ -218,16 +206,11 @@ export const googleAuth = async (req, res) => {
     prompt: "consent",
   });
 
-  console.log(
-    "Redirecting to:",
-    `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`
-  );
 
   return res.redirect(
     `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`
   );
 };
-
 
 export const googleRedirect = async (req, res) => {
   try {
@@ -242,9 +225,9 @@ export const googleRedirect = async (req, res) => {
       url: `https://oauth2.googleapis.com/token`,
       method: "post",
       data: {
-        client_id: GOOGLE_CLIENT_ID,
-        client_secret: GOOGLE_CLIENT_SECRET,
-        redirect_uri: `${BASE_URL}/api/users/google-redirect`,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: `${process.env.BASE_URL}/api/users/google-redirect`,
         grant_type: "authorization_code",
         code,
       },
@@ -268,28 +251,31 @@ export const googleRedirect = async (req, res) => {
     let user = await User.findOne({ email: userEmail });
 
     if (user) {
-      const token = jwt.sign({ id: user._id }, SECRET_KEY_ACCESS, {
+      const token = jwt.sign({ id: user._id }, process.env.SECRET_KEY_ACCESS, {
         expiresIn: "48h",
       });
 
       await User.findByIdAndUpdate(user._id, { token });
 
-      return res.redirect(`${FRONTEND_URL}/google-redirect?token=${token}`);
+      return res.redirect(`${process.env.FRONTEND_URL}/google-redirect?token=${token}`);
     }
 
-    user = await User.create({
+    const newUser = await User.create({
       email: userEmail,
+      password: nanoid(),
       name: userName,
-      password: uuidv4(),
+      verify: true,
+      verificationToken: null,
     });
-
-    const token = jwt.sign({ id: user._id }, SECRET_KEY_ACCESS, {
+  
+    const token = jwt.sign({ id: newUser._id }, process.env.SECRET_KEY_ACCESS, {
       expiresIn: "48h",
     });
+  
 
-    await User.findByIdAndUpdate(user._id, { token });
+    await User.findByIdAndUpdate(newUser._id, { token });
 
-    res.redirect(`${FRONTEND_URL}/google-redirect?token=${token}`);
+    res.redirect(`${process.env.FRONTEND_URL}/google-redirect?token=${token}`);
   } catch (error) {
     console.error(error);
     res.status(500).send("An error occurred during the authentication process");
