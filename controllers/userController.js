@@ -135,8 +135,17 @@ export const userCurrent = async (req, res, next) => {
 
   try {
     const user = await User.findOne({ accessToken: token });
-    const { _id, name, email, avatarURL, gender, weight, activeTime, liters } =
-      user;
+    const {
+      _id,
+      name,
+      email,
+      theme,
+      avatarURL,
+      gender,
+      weight,
+      activeTime,
+      liters,
+    } = user;
     console.log(user);
     if (!user) {
       throw HttpError(401);
@@ -146,6 +155,7 @@ export const userCurrent = async (req, res, next) => {
       _id,
       name,
       email,
+      theme,
       avatarURL,
       gender,
       weight,
@@ -195,6 +205,9 @@ export const googleAuth = async (req, res) => {
     access_type: "offline",
     prompt: "consent",
   });
+
+  console.log("GOOGLE_CLIENT_ID:", GOOGLE_CLIENT_ID);
+  console.log("Redirecting to:", `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`);
 
   return res.redirect(
     `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`
@@ -280,7 +293,8 @@ export const verifyUser = async (req, res, next) => {
       { new: true }
     );
     if (!user) throw HttpError(404);
-    res.status(200).json({ message: "Verification successful" });
+
+    res.redirect(process.env.CLIENT_URL);
   } catch (error) {
     next(error);
   }
