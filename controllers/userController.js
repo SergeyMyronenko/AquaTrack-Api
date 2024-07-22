@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import HttpError from "../helpers/HttpError.js";
 import { User } from "../models/user.js";
 import axios from "axios";
@@ -5,7 +8,6 @@ import { URL } from "url";
 import queryString from "query-string";
 import { sendMail } from "../helpers/mail.js";
 import jwt from "jsonwebtoken";
-
 import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid"; // Правильний імпорт uuid
 
@@ -25,10 +27,6 @@ const {
   SECRET_KEY_ACCESS,
 } = process.env;
 
-console.log("GOOGLE_CLIENT_ID:", GOOGLE_CLIENT_ID);
-console.log("GOOGLE_CLIENT_SECRET:", GOOGLE_CLIENT_SECRET);
-console.log("BASE_URL:", BASE_URL);
-console.log("FRONTEND_URL:", FRONTEND_URL);
 
 export const SignUp = async (req, res, next) => {
   const { email, password } = req.body;
@@ -229,6 +227,7 @@ export const googleAuth = async (req, res) => {
     `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`
   );
 };
+
 
 export const googleRedirect = async (req, res) => {
   try {
