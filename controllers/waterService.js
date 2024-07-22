@@ -69,10 +69,6 @@ export const getDayWater = async (req, res, next) => {
       },
     });
 
-    if (!foundWaterDayData || foundWaterDayData.length === 0) {
-      throw HttpError(404, "Info for this day not found");
-    }
-
     const totalDayWater = foundWaterDayData.reduce(
       (acc, item) => acc + item.amount,
       0
