@@ -149,8 +149,17 @@ export const userCurrent = async (req, res, next) => {
 
   try {
     const user = await User.findOne({ accessToken: token });
-    const { _id, name, email, avatarURL, gender, weight, activeTime, liters } =
-      user;
+    const {
+      _id,
+      name,
+      email,
+      theme,
+      avatarURL,
+      gender,
+      weight,
+      activeTime,
+      liters,
+    } = user;
     console.log(user);
     if (!user) {
       throw HttpError(401);
