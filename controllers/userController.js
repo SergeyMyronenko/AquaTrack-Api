@@ -196,9 +196,6 @@ export const googleAuth = async (req, res) => {
     prompt: "consent",
   });
 
-  console.log("GOOGLE_CLIENT_ID:", GOOGLE_CLIENT_ID);
-  console.log("Redirecting to:", `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`);
-
   return res.redirect(
     `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`
   );
