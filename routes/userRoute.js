@@ -26,9 +26,6 @@ userRouter.get("/verify", verifyCheck);
 
 userRouter.post("/register", validateBody(createUserSchema), SignUp);
 
-userRouter.get("/google", googleAuth);
-userRouter.get("/google-redirect", googleRedirect);
-
 userRouter.post("/login", validateBody(loginUserSchema), SignIn);
 
 userRouter.get("/refresh", refreshAuth, refreshToken);
@@ -40,5 +37,9 @@ userRouter.put("/:userId", auth, upload.single("avatar"), updatedUser);
 userRouter.get("/current", auth, userCurrent);
 
 userRouter.get("/", fetchAllUsers);
+
+userRouter.get("/google", googleAuth);
+
+userRouter.post("/google-redirect", googleRedirect);
 
 export default userRouter;
