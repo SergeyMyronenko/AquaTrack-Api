@@ -49,7 +49,7 @@ userRouter.get("/", fetchAllUsers);
 
 userRouter.get("/get-google-url", getGoogleOAuthUrlController);
 
-userRouter.get(
+userRouter.post(
   "/confirm-google",
   validateBody(loginWithGoogleOAuthSchema),
   loginWithGoogleController

@@ -5,8 +5,6 @@ import "dotenv/config";
 
 const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = process.env;
 
-// import { env } from "./env.js";
-
 const PATH_JSON = path.join(process.cwd(), "google-oauth.json");
 
 const oauthConfig = JSON.parse(await readFile(PATH_JSON));
@@ -19,6 +17,7 @@ const googleOAuthClient = new OAuth2Client({
 
 export const generateAuthUrl = () => {
   return googleOAuthClient.generateAuthUrl({
+    access_type: "offline",
     scope: [
       "https://www.googleapis.com/auth/userinfo.email",
       "https://www.googleapis.com/auth/userinfo.profile",
@@ -28,6 +27,8 @@ export const generateAuthUrl = () => {
 
 export const validateCode = async (code) => {
   const response = await googleOAuthClient.getToken(code);
+  console.log("Validate", response);
+
   if (!response.tokens.id_token) throw createHttpError(401, "Unauthorized");
 
   const ticket = await googleOAuthClient.verifyIdToken({
