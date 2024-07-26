@@ -1,6 +1,6 @@
 {
   "web": {
-    "client_id": "457877111079-sgcsg3b9u490t82sh7ab7vavdn53r4ru.apps.googleusercontent.com",
+    "client_id": "",
     "project_id": "aquatrack-430312",
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
     "token_uri": "https://oauth2.googleapis.com/token",
