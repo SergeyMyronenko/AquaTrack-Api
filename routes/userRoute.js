@@ -40,6 +40,6 @@ userRouter.get("/", fetchAllUsers);
 
 userRouter.get("/google", googleAuth);
 
-userRouter.post("/google-redirect", googleRedirect);
+userRouter.get("/google-redirect", googleRedirect);
 
 export default userRouter;

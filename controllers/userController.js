@@ -223,7 +223,10 @@ export const googleRedirect = async (req, res, next) => {
     const urlObj = new URL(fullUrl);
     const urlParams = queryString.parse(urlObj.search);
     const code = urlParams.code;
-    console.log(code);
+
+    if (!code) {
+      throw HttpError(404, "Authorization code is missing");
+    }
 
     const tokenData = await axios({
       url: `https://oauth2.googleapis.com/token`,
@@ -244,8 +247,6 @@ export const googleRedirect = async (req, res, next) => {
         Authorization: `Bearer ${tokenData.data.access_token}`,
       },
     });
-
-    console.log("User data:", userData);
 
     // const userName = userData.data.name;
     const userEmail = userData.data.email;
