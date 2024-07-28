@@ -13,7 +13,7 @@ const startServer = async () => {
       console.log("DATABASE connect succsesfully");
     });
   } catch (error) {
-    console.error(error);
+    console.log(error.message);
   }
 };
 
